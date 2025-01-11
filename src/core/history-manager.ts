@@ -43,10 +43,7 @@ export class HistoryManager<Item> {
     this._options = options;
 
     // Initialize the store
-    this._store.setState({
-      history: options.initialState ? [options.initialState] : [],
-      cursor: options.initialState ? 0 : -1,
-    });
+    this.reset();
 
     bind(this);
   }
@@ -181,6 +178,16 @@ export class HistoryManager<Item> {
   clear() {
     this.updateStore((state) => {
       state.history = [state.history[0]];
+      state.cursor = 0;
+    });
+  }
+
+  /**
+   * Reset the history to the initial state
+   */
+  reset() {
+    this.updateStore((state) => {
+      state.history = [castDraft(this._options.initialState)];
       state.cursor = 0;
     });
   }

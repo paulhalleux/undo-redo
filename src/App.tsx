@@ -10,6 +10,7 @@ type CommandContext = {
 
 const commandExecutor = new HistoryCommandExecutor<CommandContext>({
   historyManagerOptions: {
+    maxHistoryLength: 10,
     initialState: InitCounterCommand(0),
   },
 });

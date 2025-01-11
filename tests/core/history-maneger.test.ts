@@ -180,4 +180,15 @@ describe("HistoryManager", () => {
     expect(manager.canUndo()).toBe(false);
     expect(manager.canRedo()).toBe(false);
   });
+
+  it("should reset the history to the initial state", () => {
+    manager.push("item1");
+    manager.push("item2");
+    manager.reset();
+
+    expect(manager.getHistory()).toEqual(["initial"]);
+    expect(manager.getCursor()).toBe(0); // Cursor should return to the initial state
+    expect(manager.canUndo()).toBe(false);
+    expect(manager.canRedo()).toBe(false);
+  });
 });

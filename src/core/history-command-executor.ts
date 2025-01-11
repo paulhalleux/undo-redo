@@ -83,6 +83,19 @@ export class HistoryCommandExecutor<Context = unknown>
   }
 
   /**
+   * Reset the history to the initial state.
+   *
+   * This will execute the initial command and clear the history.
+   */
+  reset(): void {
+    this._history.reset();
+    const command = this._history.getCurrent();
+    if (command) {
+      command.execute();
+    }
+  }
+
+  /**
    * Get the event emitter.
    */
   get emitter() {
