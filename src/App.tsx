@@ -1,79 +1,97 @@
 import { useState } from "react";
 
-import { HistoryCommandExecutor } from "./core/history-command-executor.ts";
 import { useHistory } from "./react/useHistorySelector.ts";
+import { HistoryCommandExecutor } from "./core";
 
 const commandExecutor = new HistoryCommandExecutor<{ count: number }>({
   maxHistoryLength: 10,
 });
 
-function IncrementCommand(count: number, setCount: (count: number) => void) {
+type Counter = {
+  count: number;
+  increment: () => void;
+  decrement: () => void;
+  setCount: (count: number) => void;
+};
+
+function useCounter(): Counter {
+  const [count, setCount] = useState(0);
+
+  const increment = () => {
+    setCount(count + 1);
+  };
+
+  const decrement = () => {
+    setCount(count - 1);
+  };
+
+  return {
+    count,
+    increment,
+    decrement,
+    setCount,
+  };
+}
+
+function IncrementCommand(counter: Counter) {
   return {
     context: {
-      count: count + 1,
+      count: counter.count + 1,
     },
     execute: () => {
-      setCount(count + 1);
+      counter.increment();
     },
     undo: () => {
-      setCount(count);
+      counter.setCount(counter.count);
     },
   };
 }
 
-function DecrementCommand(count: number, setCount: (count: number) => void) {
+function DecrementCommand(counter: Counter) {
   return {
     context: {
-      count: count - 1,
+      count: counter.count - 1,
     },
     execute: () => {
-      setCount(count - 1);
+      counter.decrement();
     },
     undo: () => {
-      setCount(count);
+      counter.setCount(counter.count);
     },
   };
 }
 
 function App() {
-  const { canRedo, canUndo, history, cursor, clear } = useHistory(
-    commandExecutor.history,
-  );
+  const history = useHistory(commandExecutor.history);
+  const counter = useCounter();
 
-  const [count, setCount] = useState(0);
-
-  const onIncrement = () => {
-    commandExecutor.execute(IncrementCommand(count, setCount));
-  };
-
-  const onDecrement = () => {
-    commandExecutor.execute(DecrementCommand(count, setCount));
-  };
+  const onIncrement = () => commandExecutor.execute(IncrementCommand(counter));
+  const onDecrement = () => commandExecutor.execute(DecrementCommand(counter));
 
   return (
     <div>
-      <button onClick={commandExecutor.undo} disabled={!canUndo}>
+      <button onClick={commandExecutor.undo} disabled={!history.canUndo}>
         Undo
       </button>
-      <button onClick={commandExecutor.redo} disabled={!canRedo}>
+      <button onClick={commandExecutor.redo} disabled={!history.canRedo}>
         Redo
       </button>
-      <button onClick={clear}>Clear</button>
+      <button onClick={history.clear}>Clear</button>
 
       <div>
         <button onClick={onIncrement}>Increment</button>
         <button onClick={onDecrement}>Decrement</button>
-        <span>{count}</span>
+        <span>{counter.count}</span>
       </div>
 
       <div>
         <h2>History</h2>
         <ul>
-          {history.map((command, index) => (
+          {history.history.map((command, index) => (
             <li
               key={index}
               style={{
-                color: index === cursor ? "red" : "black",
+                color: index === history.cursor ? "red" : "black",
               }}
             >
               {command.context.count}
