@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Command, UndoableCommand } from "../../src/core/command";
-import { HistoryCommandExecutor } from "../../src/core/history-command-executor";
+import {
+  Command,
+  HistoryCommandExecutor,
+  UndoableCommand,
+} from "../../src/core";
 
 describe("HistoryCommandExecutor", () => {
   let executor: HistoryCommandExecutor;

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SimpleCommandExecutor } from "../../src/core/simple-command-executor";
+import { SimpleCommandExecutor } from "../../src/core";
 
 vi.mock("../utils/error", () => ({
   getErrorWithFallback: vi.fn((error) =>

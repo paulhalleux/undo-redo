@@ -1,10 +1,32 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import {
-  HistoryManager,
-  HistoryState,
-  HistoryStoreApi,
-} from "../../src/core/history-manager";
+import { HistoryManager, HistoryState, HistoryStoreApi } from "../../src/core";
+
+function createMockStore<T>(): HistoryStoreApi<T> {
+  const listeners: Array<() => void> = [];
+  let state: HistoryState<T> = { history: [], cursor: -1 };
+
+  return {
+    subscribe: (listener) => {
+      listeners.push(listener);
+      return () => {
+        const index = listeners.indexOf(listener);
+        if (index >= 0) {
+          listeners.splice(index, 1);
+        }
+      };
+    },
+    getState: () => state,
+    setState: (newState) => {
+      if (typeof newState === "function") {
+        state = newState(state);
+      } else {
+        state = newState;
+      }
+      listeners.forEach((listener) => listener());
+    },
+  };
+}
 
 describe("HistoryManager", () => {
   const maxHistoryLength = 5;
@@ -13,7 +35,10 @@ describe("HistoryManager", () => {
   let manager: HistoryManager<TestItem>;
 
   beforeEach(() => {
-    manager = new HistoryManager<TestItem>({ maxHistoryLength });
+    manager = new HistoryManager<TestItem>({
+      maxHistoryLength,
+      store: createMockStore(),
+    });
   });
 
   it("should initialize with an empty history and cursor at -1", () => {
@@ -136,129 +161,5 @@ describe("HistoryManager", () => {
 
     manager.redo();
     expect(manager.getCursor()).toBe(1);
-  });
-});
-
-// Custom store mock implementation
-function createMockStore(): HistoryStoreApi<{}> {
-  let state: HistoryState<{}> = { history: [], cursor: -1 };
-
-  return {
-    getState: () => state,
-    setState: (newState) => {
-      if (typeof newState === "function") {
-        state = newState(state);
-      } else {
-        state = newState;
-      }
-    },
-  };
-}
-
-describe("HistoryManager with Custom Store", () => {
-  let customStore: HistoryStoreApi<{}>;
-  let historyManager: HistoryManager<{}>;
-
-  beforeEach(() => {
-    customStore = createMockStore();
-    historyManager = new HistoryManager<{}>({
-      maxHistoryLength: 3,
-      store: customStore,
-    });
-  });
-
-  it("should initialize with an empty history and cursor at -1", () => {
-    expect(historyManager.getHistory()).toEqual([]);
-    expect(historyManager.getCursor()).toBe(-1);
-  });
-
-  it("should push an item to the history", () => {
-    const item = {};
-    historyManager.push(item);
-
-    expect(historyManager.getHistory()).toEqual([item]);
-    expect(historyManager.getCursor()).toBe(0);
-  });
-
-  it("should maintain a maximum history length", () => {
-    historyManager.push({});
-    historyManager.push({});
-    historyManager.push({});
-    historyManager.push({});
-
-    expect(historyManager.getHistory().length).toBe(3); // History length should not exceed 3
-  });
-
-  it("should update the cursor position when an item is pushed", () => {
-    const item1 = {};
-    const item2 = {};
-
-    historyManager.push(item1);
-    historyManager.push(item2);
-
-    expect(historyManager.getCursor()).toBe(1); // Cursor should be at the last item
-  });
-
-  it("should undo the last action", () => {
-    const item1 = {};
-    const item2 = {};
-
-    historyManager.push(item1);
-    historyManager.push(item2);
-
-    const undoneItem = historyManager.undo();
-
-    expect(undoneItem).toBe(item1); // The item that was undone should be the first item
-    expect(historyManager.getCursor()).toBe(0); // Cursor should be at the last item
-  });
-
-  it("should return null if undo is not possible", () => {
-    const undoneItem = historyManager.undo();
-    expect(undoneItem).toBeNull(); // No item to undo
-  });
-
-  it("should redo the last undone action", () => {
-    const item1 = {};
-    const item2 = {};
-
-    historyManager.push(item1);
-    historyManager.push(item2);
-    historyManager.undo(); // Undo the second item
-
-    const redoneItem = historyManager.redo();
-
-    expect(redoneItem).toBe(item2); // The item that was redone should be the second item
-    expect(historyManager.getCursor()).toBe(1); // Cursor should be at the last item
-  });
-
-  it("should return null if redo is not possible", () => {
-    const redoneItem = historyManager.redo();
-    expect(redoneItem).toBeNull(); // No item to redo
-  });
-
-  it("should handle pushing items after undo", () => {
-    const item1 = {};
-    const item2 = {};
-    const item3 = {};
-
-    historyManager.push(item1);
-    historyManager.push(item2);
-    historyManager.undo(); // Undo the second item
-
-    historyManager.push(item3); // Push a new item after undo
-
-    expect(historyManager.getHistory()).toEqual([item1, item3]);
-    expect(historyManager.getCursor()).toBe(1); // Cursor should be at the last item
-  });
-
-  it("should correctly handle the maxHistoryLength", () => {
-    historyManager.push({});
-    historyManager.push({});
-    historyManager.push({});
-    historyManager.push({});
-    historyManager.push({});
-
-    // Maximum history length is 3, so the first item should be removed
-    expect(historyManager.getHistory().length).toBe(3);
   });
 });

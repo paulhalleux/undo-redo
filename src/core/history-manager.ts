@@ -1,9 +1,11 @@
 import { castDraft, produce } from "immer";
-import { create } from "zustand";
 
 import { StoreUpdater } from "../types/store-utils.ts";
 
+import { createZustandHistoryStore } from "./store.ts";
+
 export type HistoryStoreApi<Item> = {
+  subscribe: (listener: () => void) => () => void;
   getState: () => HistoryState<Item>;
   setState: (
     state:
@@ -33,7 +35,7 @@ export class HistoryManager<Item> {
   private _options: HistoryManagerOptions<Item>;
 
   constructor(options: HistoryManagerOptions<Item>) {
-    this._store = options.store ?? createHistoryStore<Item>();
+    this._store = options.store ?? createZustandHistoryStore<Item>();
     this._options = options;
   }
 
@@ -165,16 +167,4 @@ export class HistoryManager<Item> {
   private updateStore(updater: StoreUpdater<HistoryState<Item>>) {
     this._store.setState(produce(this._store.getState(), updater));
   }
-}
-
-/**
- * Create a new history store
- *
- * @template Item The type of the items in the history
- */
-function createHistoryStore<Item>() {
-  return create<HistoryState<Item>>(() => ({
-    history: [],
-    cursor: -1,
-  }));
 }

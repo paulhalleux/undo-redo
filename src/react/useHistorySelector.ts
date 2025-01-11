@@ -1,7 +1,6 @@
-import { useStore } from "zustand/react";
-import { useShallow } from "zustand/react/shallow";
+import { useSyncExternalStore } from "react";
 
-import { HistoryManager, HistoryState } from "../core/history-manager.ts";
+import { HistoryManager, HistoryState } from "../core";
 
 export type HistorySelector<T, S> = (args: {
   state: HistoryState<T>;
@@ -12,9 +11,10 @@ export function useHistorySelector<T, S>(
   manager: HistoryManager<T>,
   selector: HistorySelector<T, S>,
 ): S {
-  return useStore(
-    manager.store,
-    useShallow((state) => selector({ state, manager })),
+  return useSyncExternalStore(
+    manager.store.subscribe,
+    () => selector({ state: manager.store.getState(), manager }),
+    () => selector({ state: manager.store.getState(), manager }),
   );
 }
 
