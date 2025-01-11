@@ -1,34 +1,39 @@
 import { castDraft, produce } from "immer";
 import { create } from "zustand";
-import { StoreApi } from "zustand/vanilla";
 
 import { StoreUpdater } from "../types/store-utils.ts";
+
+export type HistoryStoreApi<Item> = {
+  getState: () => HistoryState<Item>;
+  setState: (
+    state:
+      | HistoryState<Item>
+      | ((state: HistoryState<Item>) => HistoryState<Item>),
+  ) => void;
+};
 
 export type HistoryState<Item> = {
   history: Item[];
   cursor: number;
 };
 
-export type HistoryManagerOptions = {
+export type HistoryManagerOptions<Item> = {
   maxHistoryLength: number;
+  store?: HistoryStoreApi<Item>;
 };
 
 /**
  * HistoryManager
  * ---
  * A manager for managing history
- *
- * It uses the `zustand` library to manage the state internally.
- * Thus, it can be used with any framework that supports `zustand` for subscribing to the state.
- *
  * @template Item The type of the items in the history
  */
 export class HistoryManager<Item> {
-  private _store: StoreApi<HistoryState<Item>>;
-  private _options: HistoryManagerOptions;
+  private _store: HistoryStoreApi<Item>;
+  private _options: HistoryManagerOptions<Item>;
 
-  constructor(options: HistoryManagerOptions) {
-    this._store = createHistoryStore<Item>();
+  constructor(options: HistoryManagerOptions<Item>) {
+    this._store = options.store ?? createHistoryStore<Item>();
     this._options = options;
   }
 
@@ -61,8 +66,8 @@ export class HistoryManager<Item> {
    * Undo the last item in the history
    *
    * This will move the cursor to the previous item in the history.
-   * If there are no items to undo, it will return `null`.
-   * If the cursor is at the beginning of the history, it will return `null`.
+   * - If there are no items to undo, it will return `null`.
+   * - If the cursor is at the beginning of the history, it will return `null`.
    *
    * @returns The item that was undone
    */
@@ -84,7 +89,7 @@ export class HistoryManager<Item> {
    * Redo the last undone item in the history
    *
    * This will move the cursor to the next item in the history.
-   * If there are no items to redo, it will return `null`.
+   * - If there are no items to redo, it will return `null`.
    *
    * @returns The item that was redone
    */
