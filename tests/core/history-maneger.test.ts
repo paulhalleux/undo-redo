@@ -162,4 +162,15 @@ describe("HistoryManager", () => {
     manager.redo();
     expect(manager.getCursor()).toBe(1);
   });
+
+  it("should clear the history", () => {
+    manager.push("item1");
+    manager.push("item2");
+    manager.clear();
+
+    expect(manager.getHistory()).toEqual([]);
+    expect(manager.getCursor()).toBe(-1);
+    expect(manager.canUndo()).toBe(false);
+    expect(manager.canRedo()).toBe(false);
+  });
 });

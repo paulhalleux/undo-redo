@@ -154,6 +154,9 @@ export class HistoryManager<Item> {
     );
   }
 
+  /**
+   * Clear the history
+   */
   clear() {
     this.updateStore((state) => {
       state.history = [];
