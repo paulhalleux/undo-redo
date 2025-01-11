@@ -3,8 +3,15 @@ import { useState } from "react";
 import { useHistory } from "./react/useHistorySelector.ts";
 import { HistoryCommandExecutor } from "./core";
 
-const commandExecutor = new HistoryCommandExecutor<{ count: number }>({
-  maxHistoryLength: 10,
+type CommandContext = {
+  type: "init" | "increment" | "decrement";
+  count: number;
+};
+
+const commandExecutor = new HistoryCommandExecutor<CommandContext>({
+  historyManagerOptions: {
+    initialState: InitCounterCommand(0),
+  },
 });
 
 type Counter = {
@@ -17,13 +24,8 @@ type Counter = {
 function useCounter(): Counter {
   const [count, setCount] = useState(0);
 
-  const increment = () => {
-    setCount(count + 1);
-  };
-
-  const decrement = () => {
-    setCount(count - 1);
-  };
+  const increment = () => setCount(count + 1);
+  const decrement = () => setCount(count - 1);
 
   return {
     count,
@@ -33,9 +35,21 @@ function useCounter(): Counter {
   };
 }
 
+function InitCounterCommand(initialCount: number) {
+  return {
+    context: {
+      type: "init" as const,
+      count: initialCount,
+    },
+    execute: () => {},
+    undo: () => {},
+  };
+}
+
 function IncrementCommand(counter: Counter) {
   return {
     context: {
+      type: "increment" as const,
       count: counter.count + 1,
     },
     execute: () => {
@@ -50,6 +64,7 @@ function IncrementCommand(counter: Counter) {
 function DecrementCommand(counter: Counter) {
   return {
     context: {
+      type: "decrement" as const,
       count: counter.count - 1,
     },
     execute: () => {
@@ -94,7 +109,7 @@ function App() {
                 color: index === history.cursor ? "red" : "black",
               }}
             >
-              {command.context.count}
+              {command.context.type}: {command.context.count}
             </li>
           ))}
         </ul>

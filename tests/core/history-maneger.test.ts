@@ -36,26 +36,27 @@ describe("HistoryManager", () => {
 
   beforeEach(() => {
     manager = new HistoryManager<TestItem>({
+      initialState: "initial", // Set the initial state here
       maxHistoryLength,
       store: createMockStore(),
     });
   });
 
-  it("should initialize with an empty history and cursor at -1", () => {
-    expect(manager.getHistory()).toEqual([]);
-    expect(manager.getCursor()).toBe(-1);
-    expect(manager.canUndo()).toBe(false);
-    expect(manager.canRedo()).toBe(false);
+  it("should initialize with the initial state and cursor at -1", () => {
+    expect(manager.getHistory()).toEqual(["initial"]); // History should contain initial state
+    expect(manager.getCursor()).toBe(0); // Cursor should be at the initial state (index 0)
+    expect(manager.canUndo()).toBe(false); // No history to undo
+    expect(manager.canRedo()).toBe(false); // No redo history
   });
 
   it("should add items to the history and update the cursor", () => {
     manager.push("item1");
-    expect(manager.getHistory()).toEqual(["item1"]);
-    expect(manager.getCursor()).toBe(0);
+    expect(manager.getHistory()).toEqual(["initial", "item1"]);
+    expect(manager.getCursor()).toBe(1);
 
     manager.push("item2");
-    expect(manager.getHistory()).toEqual(["item1", "item2"]);
-    expect(manager.getCursor()).toBe(1);
+    expect(manager.getHistory()).toEqual(["initial", "item1", "item2"]);
+    expect(manager.getCursor()).toBe(2);
   });
 
   it("should respect maxHistoryLength when pushing items", () => {
@@ -78,8 +79,8 @@ describe("HistoryManager", () => {
     manager.undo();
 
     manager.push("item3");
-    expect(manager.getHistory()).toEqual(["item1", "item3"]);
-    expect(manager.getCursor()).toBe(1);
+    expect(manager.getHistory()).toEqual(["initial", "item1", "item3"]);
+    expect(manager.getCursor()).toBe(2);
     expect(manager.canRedo()).toBe(false);
   });
 
@@ -88,13 +89,14 @@ describe("HistoryManager", () => {
     manager.push("item2");
     manager.undo();
 
-    expect(manager.getCursor()).toBe(0);
+    expect(manager.getCursor()).toBe(1);
     expect(manager.getCurrent()).toBe("item1");
     expect(manager.canUndo()).toBe(true);
     expect(manager.canRedo()).toBe(true);
   });
 
   it("should return null when undoing with no history", () => {
+    manager.clear();
     expect(manager.undo()).toBeNull();
   });
 
@@ -104,7 +106,7 @@ describe("HistoryManager", () => {
     manager.undo();
     manager.redo();
 
-    expect(manager.getCursor()).toBe(1);
+    expect(manager.getCursor()).toBe(2);
     expect(manager.getCurrent()).toBe("item2");
     expect(manager.canUndo()).toBe(true);
     expect(manager.canRedo()).toBe(false);
@@ -120,7 +122,7 @@ describe("HistoryManager", () => {
     manager.push("item2");
     manager.undo();
 
-    expect(manager.getCurrent()).toBe("item1");
+    expect(manager.getCurrent()).toBe("item1"); // After undo, the current item is the initial state
   });
 
   it("should handle canUndo and canRedo states correctly", () => {
@@ -146,21 +148,26 @@ describe("HistoryManager", () => {
     manager.push("item2");
     manager.push("item3");
 
-    expect(manager.getHistory()).toEqual(["item1", "item2", "item3"]);
+    expect(manager.getHistory()).toEqual([
+      "initial",
+      "item1",
+      "item2",
+      "item3",
+    ]);
   });
 
   it("should return the correct cursor position", () => {
     manager.push("item1");
-    expect(manager.getCursor()).toBe(0);
+    expect(manager.getCursor()).toBe(1);
 
     manager.push("item2");
-    expect(manager.getCursor()).toBe(1);
+    expect(manager.getCursor()).toBe(2);
 
     manager.undo();
-    expect(manager.getCursor()).toBe(0);
+    expect(manager.getCursor()).toBe(1);
 
     manager.redo();
-    expect(manager.getCursor()).toBe(1);
+    expect(manager.getCursor()).toBe(2);
   });
 
   it("should clear the history", () => {
@@ -168,8 +175,8 @@ describe("HistoryManager", () => {
     manager.push("item2");
     manager.clear();
 
-    expect(manager.getHistory()).toEqual([]);
-    expect(manager.getCursor()).toBe(-1);
+    expect(manager.getHistory()).toEqual(["initial"]);
+    expect(manager.getCursor()).toBe(0); // Cursor should return to the initial state
     expect(manager.canUndo()).toBe(false);
     expect(manager.canRedo()).toBe(false);
   });

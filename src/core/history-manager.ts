@@ -5,6 +5,8 @@ import { bind } from "../utils/binder.ts";
 
 import { createZustandHistoryStore } from "./store.ts";
 
+const DEFAULT_MAX_HISTORY_LENGTH = 100;
+
 export type HistoryStoreApi<Item> = {
   subscribe: (listener: () => void) => () => void;
   getState: () => HistoryState<Item>;
@@ -21,7 +23,8 @@ export type HistoryState<Item> = {
 };
 
 export type HistoryManagerOptions<Item> = {
-  maxHistoryLength: number;
+  initialState: Item;
+  maxHistoryLength?: number;
   store?: HistoryStoreApi<Item>;
 };
 
@@ -38,6 +41,13 @@ export class HistoryManager<Item> {
   constructor(options: HistoryManagerOptions<Item>) {
     this._store = options.store ?? createZustandHistoryStore<Item>();
     this._options = options;
+
+    // Initialize the store
+    this._store.setState({
+      history: options.initialState ? [options.initialState] : [],
+      cursor: options.initialState ? 0 : -1,
+    });
+
     bind(this);
   }
 
@@ -56,7 +66,10 @@ export class HistoryManager<Item> {
       state.history = state.history.slice(0, state.cursor + 1);
       state.history.push(castDraft(item));
 
-      if (state.history.length > this._options.maxHistoryLength) {
+      if (
+        state.history.length >
+        (this._options.maxHistoryLength ?? DEFAULT_MAX_HISTORY_LENGTH)
+      ) {
         state.history.shift();
       }
 
@@ -76,7 +89,7 @@ export class HistoryManager<Item> {
    * @returns The item that was undone
    */
   undo() {
-    if (this._store.getState().cursor < 0) {
+    if (this._store.getState().cursor <= 0) {
       return null;
     }
 
@@ -113,6 +126,14 @@ export class HistoryManager<Item> {
   }
 
   /**
+   * Get the maximum history length
+   * @returns The maximum history length
+   */
+  getMaxLength() {
+    return this._options.maxHistoryLength ?? DEFAULT_MAX_HISTORY_LENGTH;
+  }
+
+  /**
    * Get the history
    * @returns The history
    */
@@ -141,7 +162,7 @@ export class HistoryManager<Item> {
    * @returns True if undo is possible
    */
   canUndo() {
-    return this._store.getState().cursor >= 0;
+    return this._store.getState().cursor > 0;
   }
 
   /**
@@ -159,8 +180,8 @@ export class HistoryManager<Item> {
    */
   clear() {
     this.updateStore((state) => {
-      state.history = [];
-      state.cursor = -1;
+      state.history = [state.history[0]];
+      state.cursor = 0;
     });
   }
 

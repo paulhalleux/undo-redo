@@ -8,9 +8,14 @@ import {
 
 describe("HistoryCommandExecutor", () => {
   let executor: HistoryCommandExecutor;
+  const init = { context: {}, execute() {}, undo() {} };
 
   beforeEach(() => {
-    executor = new HistoryCommandExecutor({ maxHistoryLength: 10 });
+    executor = new HistoryCommandExecutor({
+      historyManagerOptions: {
+        initialState: init,
+      },
+    });
   });
 
   it("should execute a command using the base executor", () => {
@@ -33,7 +38,7 @@ describe("HistoryCommandExecutor", () => {
 
     executor.execute(undoableCommand);
 
-    expect(executor.history.getHistory()).toEqual([undoableCommand]);
+    expect(executor.history.getHistory()).toEqual([init, undoableCommand]);
   });
 
   it("should not add non-undoable commands to history", () => {
@@ -44,7 +49,7 @@ describe("HistoryCommandExecutor", () => {
 
     executor.execute(command);
 
-    expect(executor.history.getHistory()).toEqual([]);
+    expect(executor.history.getHistory()).toEqual([init]);
   });
 
   it('should undo the last command and emit "command:undo"', () => {

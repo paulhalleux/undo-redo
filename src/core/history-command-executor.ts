@@ -10,6 +10,10 @@ export type HistoryCommandExecutorEvents<Context> = {
   "command:redo": { command: UndoableCommand<Context> };
 };
 
+export type HistoryCommandExecutorOptions<Context> = {
+  historyManagerOptions: HistoryManagerOptions<UndoableCommand<Context>>;
+};
+
 /**
  * HistoryCommandExecutor
  * ---
@@ -27,15 +31,13 @@ export class HistoryCommandExecutor<Context = unknown>
     HistoryCommandExecutorEvents<Context>
   >;
 
-  constructor({
-    maxHistoryLength,
-  }: HistoryManagerOptions<UndoableCommand<Context>>) {
+  constructor(options: HistoryCommandExecutorOptions<Context>) {
     const baseExecutor = new SimpleCommandExecutor();
     this._baseExecutor = baseExecutor;
 
-    this._history = new HistoryManager<UndoableCommand<Context>>({
-      maxHistoryLength,
-    });
+    this._history = new HistoryManager<UndoableCommand<Context>>(
+      options.historyManagerOptions,
+    );
 
     this._emitter = baseExecutor.emitter as CommandExecutorEmitter<
       Context,
@@ -59,6 +61,7 @@ export class HistoryCommandExecutor<Context = unknown>
    * Undo the last command executed.
    */
   undo(): void {
+    if (!this._history.canUndo()) return;
     const current = this._history.getCurrent();
     if (current) {
       current.undo();
@@ -71,6 +74,7 @@ export class HistoryCommandExecutor<Context = unknown>
    * Redo the last command undone.
    */
   redo(): void {
+    if (!this._history.canRedo()) return;
     const command = this._history.redo();
     if (command) {
       command.execute();
