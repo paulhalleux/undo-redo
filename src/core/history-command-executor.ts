@@ -8,6 +8,7 @@ import { SimpleCommandExecutor } from "./simple-command-executor.ts";
 export type HistoryCommandExecutorEvents<Context> = {
   "command:undo": { command: UndoableCommand<Context> };
   "command:redo": { command: UndoableCommand<Context> };
+  reset: void;
 };
 
 export type HistoryCommandExecutorOptions<Context> = {
@@ -93,6 +94,7 @@ export class HistoryCommandExecutor<Context = unknown>
     if (command) {
       command.execute();
     }
+    this._emitter.emit("reset");
   }
 
   /**
