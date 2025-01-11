@@ -1,4 +1,7 @@
-export { createZustandHistoryStore } from "./store.ts";
+export {
+  createZustandHistoryStore,
+  createSimpleHistoryStore,
+} from "./store.ts";
 export {
   HistoryManager,
   type HistoryStoreApi,
@@ -12,4 +15,7 @@ export type {
   BaseCommandExecutorEvents,
 } from "./emitter.ts";
 export { SimpleCommandExecutor } from "./simple-command-executor.ts";
-export { HistoryCommandExecutor } from "./history-command-executor.ts";
+export {
+  HistoryCommandExecutor,
+  type HistoryCommandExecutorOptions,
+} from "./history-command-executor.ts";

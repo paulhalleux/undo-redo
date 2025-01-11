@@ -8,13 +8,6 @@ type CommandContext = {
   count: number;
 };
 
-const commandExecutor = new HistoryCommandExecutor<CommandContext>({
-  historyManagerOptions: {
-    maxHistoryLength: 10,
-    initialState: InitCounterCommand(0),
-  },
-});
-
 type Counter = {
   count: number;
   increment: () => void;
@@ -36,13 +29,15 @@ function useCounter(): Counter {
   };
 }
 
-function InitCounterCommand(initialCount: number) {
+function InitCounterCommand(counter: Counter) {
   return {
     context: {
       type: "init" as const,
-      count: initialCount,
+      count: counter.count,
     },
-    execute: () => {},
+    execute: () => {
+      counter.setCount(counter.count);
+    },
     undo: () => {},
   };
 }
@@ -78,8 +73,17 @@ function DecrementCommand(counter: Counter) {
 }
 
 function App() {
-  const history = useHistory(commandExecutor.history);
   const counter = useCounter();
+  const [commandExecutor] = useState(() => {
+    return new HistoryCommandExecutor<CommandContext>({
+      historyManagerOptions: {
+        maxHistoryLength: 10,
+        initialState: InitCounterCommand(counter),
+      },
+    });
+  });
+
+  const history = useHistory(commandExecutor.history);
 
   const onIncrement = () => commandExecutor.execute(IncrementCommand(counter));
   const onDecrement = () => commandExecutor.execute(DecrementCommand(counter));
@@ -93,6 +97,7 @@ function App() {
         Redo
       </button>
       <button onClick={history.clear}>Clear</button>
+      <button onClick={commandExecutor.reset}>Reset</button>
 
       <div>
         <button onClick={onIncrement}>Increment</button>

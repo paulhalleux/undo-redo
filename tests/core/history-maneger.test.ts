@@ -1,32 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { HistoryManager, HistoryState, HistoryStoreApi } from "../../src/core";
-
-function createMockStore<T>(): HistoryStoreApi<T> {
-  const listeners: Array<() => void> = [];
-  let state: HistoryState<T> = { history: [], cursor: -1 };
-
-  return {
-    subscribe: (listener) => {
-      listeners.push(listener);
-      return () => {
-        const index = listeners.indexOf(listener);
-        if (index >= 0) {
-          listeners.splice(index, 1);
-        }
-      };
-    },
-    getState: () => state,
-    setState: (newState) => {
-      if (typeof newState === "function") {
-        state = newState(state);
-      } else {
-        state = newState;
-      }
-      listeners.forEach((listener) => listener());
-    },
-  };
-}
+import { createSimpleHistoryStore, HistoryManager } from "../../src/core";
 
 describe("HistoryManager", () => {
   const maxHistoryLength = 5;
@@ -38,7 +12,7 @@ describe("HistoryManager", () => {
     manager = new HistoryManager<TestItem>({
       initialState: "initial", // Set the initial state here
       maxHistoryLength,
-      store: createMockStore(),
+      store: createSimpleHistoryStore(),
     });
   });
 
