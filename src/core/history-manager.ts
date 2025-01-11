@@ -1,6 +1,7 @@
 import { castDraft, produce } from "immer";
 
 import { StoreUpdater } from "../types/store-utils.ts";
+import { bind } from "../utils/binder.ts";
 
 import { createZustandHistoryStore } from "./store.ts";
 
@@ -37,6 +38,7 @@ export class HistoryManager<Item> {
   constructor(options: HistoryManagerOptions<Item>) {
     this._store = options.store ?? createZustandHistoryStore<Item>();
     this._options = options;
+    bind(this);
   }
 
   /**
@@ -150,6 +152,13 @@ export class HistoryManager<Item> {
     return (
       this._store.getState().cursor < this._store.getState().history.length - 1
     );
+  }
+
+  clear() {
+    this.updateStore((state) => {
+      state.history = [];
+      state.cursor = -1;
+    });
   }
 
   /**

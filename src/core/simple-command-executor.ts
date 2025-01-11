@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 
+import { bind } from "../utils/binder.ts";
 import { getErrorWithFallback } from "../utils/error.ts";
 
 import { Command, CommandExecutor } from "./command.ts";
@@ -19,6 +20,7 @@ export class SimpleCommandExecutor<Context = unknown>
 
   constructor() {
     this._emitter = new EventEmitter();
+    bind(this);
   }
 
   /**

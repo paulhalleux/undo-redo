@@ -36,7 +36,7 @@ function DecrementCommand(count: number, setCount: (count: number) => void) {
 }
 
 function App() {
-  const { canRedo, canUndo, history, cursor } = useHistory(
+  const { canRedo, canUndo, history, cursor, clear } = useHistory(
     commandExecutor.history,
   );
 
@@ -52,12 +52,13 @@ function App() {
 
   return (
     <div>
-      <button onClick={() => commandExecutor.undo()} disabled={!canUndo}>
+      <button onClick={commandExecutor.undo} disabled={!canUndo}>
         Undo
       </button>
-      <button onClick={() => commandExecutor.redo()} disabled={!canRedo}>
+      <button onClick={commandExecutor.redo} disabled={!canRedo}>
         Redo
       </button>
+      <button onClick={clear}>Clear</button>
 
       <div>
         <button onClick={onIncrement}>Increment</button>

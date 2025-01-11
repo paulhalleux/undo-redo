@@ -27,5 +27,6 @@ export function useHistory<T>(manager: HistoryManager<T>) {
     history: useHistorySelector(manager, ({ manager }) => manager.getHistory()),
     undo: useHistorySelector(manager, ({ manager }) => manager.undo),
     redo: useHistorySelector(manager, ({ manager }) => manager.redo),
+    clear: useHistorySelector(manager, ({ manager }) => manager.clear),
   };
 }

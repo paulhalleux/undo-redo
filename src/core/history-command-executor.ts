@@ -1,3 +1,5 @@
+import { bind } from "../utils/binder.ts";
+
 import { Command, CommandExecutor, UndoableCommand } from "./command.ts";
 import { CommandExecutorEmitter } from "./emitter.ts";
 import { HistoryManager, HistoryManagerOptions } from "./history-manager.ts";
@@ -25,7 +27,9 @@ export class HistoryCommandExecutor<Context = unknown>
     HistoryCommandExecutorEvents<Context>
   >;
 
-  constructor({ maxHistoryLength }: HistoryManagerOptions) {
+  constructor({
+    maxHistoryLength,
+  }: HistoryManagerOptions<UndoableCommand<Context>>) {
     const baseExecutor = new SimpleCommandExecutor();
     this._baseExecutor = baseExecutor;
 
@@ -37,6 +41,7 @@ export class HistoryCommandExecutor<Context = unknown>
       Context,
       HistoryCommandExecutorEvents<Context>
     >;
+    bind(this);
   }
 
   /**
