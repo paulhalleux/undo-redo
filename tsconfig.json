@@ -1,0 +1,7 @@
+{
+  "extends": "@paulhalleux/ts-config/tsconfig.app.json",
+  "include": ["src", "typings", "vite.config.ts"],
+  "compilerOptions": {
+    "types": ["vitest/importMeta"]
+  }
+}
