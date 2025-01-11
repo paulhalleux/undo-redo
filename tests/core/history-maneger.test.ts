@@ -175,7 +175,19 @@ describe("HistoryManager", () => {
     manager.push("item2");
     manager.clear();
 
-    expect(manager.getHistory()).toEqual(["initial"]);
+    expect(manager.getHistory()).toEqual(["item2"]);
+    expect(manager.getCursor()).toBe(0); // Cursor should return to the initial state
+    expect(manager.canUndo()).toBe(false);
+    expect(manager.canRedo()).toBe(false);
+  });
+
+  it("should clear the history and keep the current item", () => {
+    manager.push("item1");
+    manager.push("item2");
+    manager.undo();
+    manager.clear();
+
+    expect(manager.getHistory()).toEqual(["item1"]);
     expect(manager.getCursor()).toBe(0); // Cursor should return to the initial state
     expect(manager.canUndo()).toBe(false);
     expect(manager.canRedo()).toBe(false);

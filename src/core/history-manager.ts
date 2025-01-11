@@ -177,7 +177,7 @@ export class HistoryManager<Item> {
    */
   clear() {
     this.updateStore((state) => {
-      state.history = [state.history[0]];
+      state.history = [state.history[state.cursor]];
       state.cursor = 0;
     });
   }
