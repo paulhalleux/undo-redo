@@ -9,7 +9,6 @@ export {
   type HistoryState,
 } from "./history-manager.ts";
 export type { Command, UndoableCommand, CommandExecutor } from "./command.ts";
-export type { StoreUpdater } from "../types/store-utils.ts";
 export type {
   CommandExecutorEmitter,
   BaseCommandExecutorEvents,

@@ -1,18 +1,20 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { createSimpleHistoryStore, HistoryManager } from "../../src/core";
+import { DEFAULT_MAX_HISTORY_LENGTH } from "../../src/core/history-manager";
 
 describe("HistoryManager", () => {
   const maxHistoryLength = 5;
 
   type TestItem = string;
   let manager: HistoryManager<TestItem>;
+  const store = createSimpleHistoryStore<TestItem>();
 
   beforeEach(() => {
     manager = new HistoryManager<TestItem>({
       initialState: "initial", // Set the initial state here
       maxHistoryLength,
-      store: createSimpleHistoryStore(),
+      store,
     });
   });
 
@@ -176,5 +178,28 @@ describe("HistoryManager", () => {
     expect(manager.getCursor()).toBe(0); // Cursor should return to the initial state
     expect(manager.canUndo()).toBe(false);
     expect(manager.canRedo()).toBe(false);
+  });
+
+  it("should return the max length of the history if specified", () => {
+    const manager = new HistoryManager<TestItem>({
+      initialState: "initial",
+      maxHistoryLength: 2,
+      store: createSimpleHistoryStore(),
+    });
+
+    expect(manager.getMaxLength()).toBe(2);
+  });
+
+  it("should return the max length of the history if not specified", () => {
+    const manager = new HistoryManager<TestItem>({
+      initialState: "initial",
+      store: createSimpleHistoryStore(),
+    });
+
+    expect(manager.getMaxLength()).toBe(DEFAULT_MAX_HISTORY_LENGTH);
+  });
+
+  it("should return the store instance", () => {
+    expect(manager.store).toBe(store);
   });
 });

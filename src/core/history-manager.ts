@@ -1,11 +1,10 @@
-import { castDraft, produce } from "immer";
+import { castDraft, produce, WritableDraft } from "immer";
 
-import { StoreUpdater } from "../types/store-utils.ts";
 import { bind } from "../utils/binder.ts";
 
 import { createZustandHistoryStore } from "./store.ts";
 
-const DEFAULT_MAX_HISTORY_LENGTH = 100;
+export const DEFAULT_MAX_HISTORY_LENGTH = 100;
 
 export type HistoryStoreApi<Item> = {
   subscribe: (listener: () => void) => () => void;
@@ -204,7 +203,9 @@ export class HistoryManager<Item> {
    * @param updater The updater function
    * @private
    */
-  private updateStore(updater: StoreUpdater<HistoryState<Item>>) {
+  private updateStore(
+    updater: (state: WritableDraft<HistoryState<Item>>) => void,
+  ) {
     this._store.setState(produce(this._store.getState(), updater));
   }
 }

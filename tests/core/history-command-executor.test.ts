@@ -130,4 +130,26 @@ describe("HistoryCommandExecutor", () => {
     expect(executor.history.getHistory()).toContain(undoableCommand);
     expect(executor.history.getHistory()).not.toContain(command);
   });
+
+  it("should reset the history to the initial state", () => {
+    const undoableCommand: UndoableCommand = {
+      context: {},
+      execute: vi.fn(),
+      undo: vi.fn(),
+    };
+
+    executor.execute(undoableCommand);
+    executor.reset();
+
+    expect(executor.history.getHistory()).toEqual([init]);
+  });
+
+  it('should emit "reset" event when resetting the history', () => {
+    const resetSpy = vi.fn();
+    executor.emitter.on("reset", resetSpy);
+
+    executor.reset();
+
+    expect(resetSpy).toHaveBeenCalled();
+  });
 });
